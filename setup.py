@@ -94,7 +94,7 @@ setup(
         'redis': ['redis>=2.10,<3', 'ujson>=1.33,<2'],
         'test': [
             'cassandra-driver>=3.25,<3.26',
-            'PyMySQL>=0.7,<0.10',
+            'PyMySQL>=0.7,<1.2',
             'kafka-python>=2.0.2,<2.1',
             'redis>=2.10,<3',
             'ujson>=1.33,<2',
