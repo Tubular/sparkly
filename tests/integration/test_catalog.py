@@ -142,6 +142,33 @@ class TestSparklyCatalog(SparklyGlobalSessionTest):
             2,
         )
 
+    def test_get_table_property_matching_the_redaction_filter(self):
+        # Since Spark 3.4, SHOW TBLPROPERTIES replaces the value of any property whose
+        # name or value matches spark.redaction.regex (secret|password|token) or
+        # spark.sql.redaction.options.regex (url) with '*********(redacted)'.
+        offsets = 'ingestion.updates_youtube_tokens.r1:0:42'
+        self.spark.catalog_ext.set_table_property('test_table', 'kafka_start_offset', offsets)
+        self.spark.catalog_ext.set_table_property('test_table', 'auth_token', 'a:1')
+        self.spark.catalog_ext.set_table_property('test_table', 'source_url', 'http://host/p')
+
+        self.assertEqual(
+            self.spark.catalog_ext.get_table_property('test_table', 'kafka_start_offset'),
+            offsets,
+        )
+        self.assertEqual(
+            self.spark.catalog_ext.get_table_property('test_table', 'auth_token'),
+            'a:1',
+        )
+        self.assertEqual(
+            self.spark.catalog_ext.get_table_property('test_table', 'source_url'),
+            'http://host/p',
+        )
+
+        properties = self.spark.catalog_ext.get_table_properties('test_table')
+        self.assertEqual(properties.get('kafka_start_offset'), offsets)
+        self.assertEqual(properties.get('auth_token'), 'a:1')
+        self.assertEqual(properties.get('source_url'), 'http://host/p')
+
     def test_get_table_property_unknown(self):
         self.assertIsNone(self.spark.catalog_ext.get_table_property('test_table', 'unknown'))
         self.assertIsNone(

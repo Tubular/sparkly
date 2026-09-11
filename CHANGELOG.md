@@ -1,3 +1,7 @@
+## Unreleased
+* `catalog_ext.get_table_property` and `catalog_ext.get_table_properties` now read properties from the session catalog instead of `SHOW TBLPROPERTIES`.
+  Since Spark 3.4 that command replaces the value of any property whose name or value matches `spark.redaction.regex` or `spark.sql.redaction.options.regex` with `*********(redacted)`, so properties holding checkpoints, Kafka offsets or URLs came back unusable.
+
 ## 3.0.0
 * Improved performance of `catalog_ext.has_table` function by trying to execute a dummy SQL rather than listing the entire database, noticable mostly with databases with many tables.
 * Some minor changes to help in a spark-on-kubernetes environment:

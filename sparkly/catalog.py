@@ -175,14 +175,20 @@ class SparklyCatalog(object):
         if not to_type:
             to_type = str
 
-        df = self._spark.sql("SHOW TBLPROPERTIES {}('{}')".format(table_name, property_name))
-        prop_val = df.collect()[0].value.strip()
+        prop_val = self.get_table_properties(table_name).get(property_name)
 
-        if 'does not have property' not in prop_val:
-            return to_type(prop_val)
+        if prop_val is not None:
+            return to_type(prop_val.strip())
 
     def get_table_properties(self, table_name):
         """Get table properties from the metastore.
+
+        Note:
+            Properties are read from the session catalog rather than through
+            ``SHOW TBLPROPERTIES``. Since Spark 3.4 that command replaces the value of
+            every property whose name or value matches ``spark.redaction.regex`` or
+            ``spark.sql.redaction.options.regex`` with ``*********(redacted)``, which
+            silently corrupts any property holding a checkpoint, an offset or a URL.
 
         Args:
             table_name (str): A table name.
@@ -190,8 +196,22 @@ class SparklyCatalog(object):
         Returns:
             dict[str,str]: Key/value for properties.
         """
-        rows = self._spark.sql('SHOW TBLPROPERTIES {}'.format(table_name)).collect()
-        return {row.key: row.value for row in rows}
+        properties = self._get_table_metadata(table_name).properties()
+        return dict(
+            self._spark._jvm.scala.collection.JavaConverters
+            .mapAsJavaMapConverter(properties)
+            .asJava()
+        )
+
+    def _get_table_metadata(self, table_name):
+        """The table's ``CatalogTable``, straight from the session catalog.
+
+        Raises:
+            pyspark.sql.utils.AnalysisException: If the table does not exist.
+        """
+        session_state = self._spark._jsparkSession.sessionState()
+        identifier = session_state.sqlParser().parseTableIdentifier(table_name)
+        return session_state.catalog().getTableMetadata(identifier)
 
     def set_table_property(self, table_name, property_name, value):
         """Set value for table property.
