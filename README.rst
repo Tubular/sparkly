@@ -49,10 +49,9 @@ Testing
 -------
 
 To run tests you have to have `docker <https://www.docker.com/>`__ and
-`docker-compose <https://docs.docker.com/compose/>`__ installed on your
-system. If you are working on MacOS we highly recommend you to use
-`docker-machine <https://docs.docker.com/machine/>`__. As soon as the
-tools mentioned above have been installed, all you need is to run::
+`Docker Compose v2 <https://docs.docker.com/compose/>`__ installed on
+your system. As soon as the tools mentioned above have been installed,
+all you need is to run::
 
     make test
 

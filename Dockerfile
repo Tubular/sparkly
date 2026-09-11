@@ -14,15 +14,19 @@
 # limitations under the License.
 #
 
-FROM python:3.10
+# Java 11 comes from Temurin rather than Debian: Spark 3.2 supports Java 8 and 11
+# only, and no Debian release still in support carries an openjdk-11 package.
+FROM eclipse-temurin:11-jdk AS jdk
+
+# Pinned to a Debian release rather than the floating tag: `python:3.10` now
+# resolves to trixie, which the previous stretch-era apt sources did not survive.
+FROM python:3.10-bookworm
 
 LABEL maintainer="dev@tubularlabs.com"
 
-# Install Java 8
-RUN apt-get update && apt-get install -y software-properties-common
-RUN apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main'
-RUN apt-add-repository 'deb http://deb.debian.org/debian/ sid main'
-RUN apt-get update && apt-get install -y openjdk-8-jdk
+COPY --from=jdk /opt/java/openjdk /opt/java/openjdk
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="/opt/java/openjdk/bin:${PATH}"
 
 # Python env
 ENV CASS_DRIVER_NO_EXTENSIONS=1

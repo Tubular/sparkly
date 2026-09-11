@@ -15,20 +15,20 @@
 #
 
 dev:
-	docker-compose build dev
-	docker-compose run dev bash
-	docker-compose down -v ; exit $$retcode
+	docker compose build dev
+	docker compose run dev bash
+	docker compose down -v ; exit $$retcode
 
 dist:
-	docker-compose build dev
-	docker-compose run --no-deps dev python setup.py bdist_wheel ; retcode="$$?" ; docker-compose down -v ; exit $$retcode
+	docker compose build dev
+	docker compose run --no-deps dev python setup.py bdist_wheel ; retcode="$$?" ; docker compose down -v ; exit $$retcode
 
 docs:
-	docker-compose build dev
-	docker-compose run --no-deps dev python -m sphinx -b html docs/source docs/build
+	docker compose build dev
+	docker compose run --no-deps dev python -m sphinx -b html docs/source docs/build
 
 test:
-	docker-compose build test
-	docker-compose run test tox ; retcode="$$?" ; docker-compose down -v ; exit $$retcode
+	docker compose build test
+	docker compose run test tox ; retcode="$$?" ; docker compose down -v ; exit $$retcode
 
 .PHONY: docs dist
